@@ -8,13 +8,6 @@ from langchain_core.language_models.llms import LLM
 from pydantic import ConfigDict
 
 
-@hook  # default priority = 1
-def agent_prompt_prefix(prefix, cat):
-    # change the Cat's personality
-    prefix = ""
-    return prefix
-
-
 class LLMRegolo(LLM):
     """Setup for the Regolo plugin"""
 
