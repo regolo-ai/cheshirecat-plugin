@@ -93,7 +93,7 @@ def factory_allowed_llms(allowed, cat) -> List:
 
 
 class RegoloEmbeddings(Embeddings):
-    """Use LLAMA2 as embedder by calling a self-hosted lama-cpp-python instance."""
+    """Regolo embeddings"""
 
     def __init__(self, model, Regolo_Key):
         self.model_name = model
