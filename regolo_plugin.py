@@ -36,9 +36,10 @@ class LLMRegolo(LLM):
                    "Authorization": self.Regolo_Key if self.Regolo_Key.__contains__("Bearer") else
                    f"Bearer {self.Regolo_Key}"}
         try:
-            response = httpx.post("https://api.regolo.ai/v1/chat/completions", headers=headers, json=data).json()
-        except (Exception,):
-            return "Error"
+            response = httpx.post("https://api.regolo.ai/v1/chat/completions", headers=headers, json=data,
+                                  timeout=httpx.Timeout(timeout=20)).json()
+        except Exception as e:
+            return str(e)
         generated_text = response["choices"][0]["message"]
         return generated_text["content"]
 
@@ -93,7 +94,7 @@ def factory_allowed_llms(allowed, cat) -> List:
 
 
 class RegoloEmbeddings(Embeddings):
-    """Use LLAMA2 as embedder by calling a self-hosted lama-cpp-python instance."""
+    """Regolo embeddings"""
 
     def __init__(self, model, Regolo_Key):
         self.model_name = model
