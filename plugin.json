@@ -5,6 +5,6 @@
     "author_name": "RegoloAI",
     "author_url": "https://regolo.ai",
     "plugin_url": "https://github.com/regolo-ai/cheshirecat-plugin",
-    "tags": "cat, regolo.ai, llm",
+    "tags": "cat, regolo.ai, llm, embeddings",
     "thumb": "https://raw.githubusercontent.com/regolo-ai/cheshirecat-plugin/main/thumb.png"
 }
