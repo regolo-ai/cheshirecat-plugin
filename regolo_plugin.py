@@ -1,3 +1,4 @@
+import os
 from enum import Enum
 from typing import List, Optional, Type, Any, Mapping
 
@@ -8,7 +9,9 @@ from langchain_core.language_models.llms import LLM
 from langchain_core.embeddings import Embeddings
 from cat.factory.embedder import EmbedderSettings
 from pydantic import ConfigDict
+from dotenv import load_dotenv, dotenv_values
 
+load_dotenv()
 
 # Regolo models settings
 
@@ -16,7 +19,7 @@ class LLMRegolo(LLM):
     """Setup for the Regolo plugin"""
 
     Regolo_Key: str
-    model: str = "mistralai/Mistral-7B-Instruct-v0.2"
+    model: str
 
     @property
     def _llm_type(self) -> str:
@@ -36,8 +39,8 @@ class LLMRegolo(LLM):
                    "Authorization": self.Regolo_Key if self.Regolo_Key.__contains__("Bearer") else
                    f"Bearer {self.Regolo_Key}"}
         try:
-            response = httpx.post("https://api.regolo.ai/v1/chat/completions", headers=headers, json=data,
-                                  timeout=httpx.Timeout(timeout=20)).json()
+            response = httpx.post(os.getenv("COMPLETION_URL"), headers=headers, json=data,
+                                  timeout=httpx.Timeout(timeout=int(os.getenv("TIMEOUT")))).json()
             generated_text = response["choices"][0]["message"]
         except Exception as e:
             return str(e)
@@ -50,7 +53,8 @@ class LLMRegolo(LLM):
 
 
 def get_models_enum() -> tuple[Type[Enum], str] | tuple[Type[str], str]:
-    response = httpx.post("https://regolo.ai/models.json").json()
+    response = httpx.post(os.getenv("COMPLETION_JSON_URL"),
+                          timeout=httpx.Timeout(timeout=int(os.getenv("TIMEOUT")))).json()
     models = [content["id"] for content in response["models"]]
     x = 0
     var = {}
@@ -104,8 +108,8 @@ class RegoloEmbeddings(Embeddings):
         payload = {"input": texts, "model": self.model_name}
         headers = {"Authorization": self.Regolo_Key if self.Regolo_Key.__contains__("Bearer") else
         f"Bearer {self.Regolo_Key}"}
-        ret = httpx.post("https://api.regolo.ai/v1/embeddings", headers=headers, json=payload,
-                         timeout=httpx.Timeout(timeout=20))
+        ret = httpx.post(os.getenv("EMBEDDINGS_URL"), headers=headers, json=payload,
+                         timeout=httpx.Timeout(timeout=int(os.getenv("TIMEOUT"))))
         ret.raise_for_status()
         to_return = [e["embedding"] for e in ret.json()["data"]]
         return to_return
@@ -114,15 +118,16 @@ class RegoloEmbeddings(Embeddings):
         payload = {"input": text, "model": self.model_name}
         headers = {"Authorization": self.Regolo_Key if self.Regolo_Key.__contains__("Bearer") else
         f"Bearer {self.Regolo_Key}"}
-        ret = httpx.post("https://api.regolo.ai/v1/embeddings", headers=headers, json=payload,
-                         timeout=httpx.Timeout(timeout=20))
+        ret = httpx.post(os.getenv("EMBEDDINGS_URL"), headers=headers, json=payload,
+                         timeout=httpx.Timeout(timeout=int(os.getenv("TIMEOUT"))))
         ret.raise_for_status()
         to_return = ret.json()["data"][0]["embedding"]
         return to_return
 
 
 def get_embeddings_enum() -> tuple[Type[Enum], str] | tuple[Type[str], str]:
-    response = httpx.post("https://regolo.ai/models_embeddings.json").json()
+    response = httpx.post(os.getenv("EMBEDDINGS_JSON_URL"),
+                          timeout=httpx.Timeout(timeout=int(os.getenv("TIMEOUT")))).json()
     models = [content["id"] for content in response["models"]]
     x = 0
     var = {}
