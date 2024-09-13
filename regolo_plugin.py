@@ -38,9 +38,9 @@ class LLMRegolo(LLM):
         try:
             response = httpx.post("https://api.regolo.ai/v1/chat/completions", headers=headers, json=data,
                                   timeout=httpx.Timeout(timeout=20)).json()
+            generated_text = response["choices"][0]["message"]
         except Exception as e:
             return str(e)
-        generated_text = response["choices"][0]["message"]
         return generated_text["content"]
 
     @property
@@ -73,7 +73,7 @@ class RegoloLLMSettings(LLMSettings):
 
     @classmethod
     def get_llm_from_config(cls, config):
-        return cls._pyclass.default(**config)
+        return cls._pyclass.default(**config) # noqa
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -104,17 +104,21 @@ class RegoloEmbeddings(Embeddings):
         payload = {"input": texts, "model": self.model_name}
         headers = {"Authorization": self.Regolo_Key if self.Regolo_Key.__contains__("Bearer") else
         f"Bearer {self.Regolo_Key}"}
-        ret = httpx.post("https://api.regolo.ai/v1/embeddings", headers=headers, json=payload)
+        ret = httpx.post("https://api.regolo.ai/v1/embeddings", headers=headers, json=payload,
+                         timeout=httpx.Timeout(timeout=20))
         ret.raise_for_status()
-        return [e["embedding"] for e in ret.json()["data"]]
+        to_return = [e["embedding"] for e in ret.json()["data"]]
+        return to_return
 
     def embed_query(self, text: str) -> List[float]:
         payload = {"input": text, "model": self.model_name}
         headers = {"Authorization": self.Regolo_Key if self.Regolo_Key.__contains__("Bearer") else
         f"Bearer {self.Regolo_Key}"}
-        ret = httpx.post("https://api.regolo.ai/v1/embeddings", headers=headers, json=payload)
+        ret = httpx.post("https://api.regolo.ai/v1/embeddings", headers=headers, json=payload,
+                         timeout=httpx.Timeout(timeout=20))
         ret.raise_for_status()
-        return ret.json()["data"][0]["embedding"]
+        to_return = ret.json()["data"][0]["embedding"]
+        return to_return
 
 
 def get_embeddings_enum() -> tuple[Type[Enum], str] | tuple[Type[str], str]:
