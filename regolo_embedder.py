@@ -1,5 +1,6 @@
+import os
 from enum import Enum
-from typing import List, Optional, Type, Any, Mapping
+from typing import List, Type
 import httpx
 
 from pydantic import ConfigDict
@@ -7,8 +8,9 @@ from langchain_core.embeddings import Embeddings
 
 from cat.mad_hatter.decorators import hook
 from cat.factory.embedder import EmbedderSettings
-from cat.log import log
+from dotenv import load_dotenv, dotenv_values
 
+load_dotenv()
 
 class RegoloEmbeddings(Embeddings):
     """Regolo embeddings"""
@@ -21,8 +23,8 @@ class RegoloEmbeddings(Embeddings):
         payload = {"input": texts, "model": self.model_name}
         headers = {"Authorization": self.Regolo_Key if self.Regolo_Key.__contains__("Bearer") else
         f"Bearer {self.Regolo_Key}"}
-        ret = httpx.post("https://api.regolo.ai/v1/embeddings", headers=headers, json=payload,
-                         timeout=httpx.Timeout(timeout=20))
+        ret = httpx.post(os.getenv("EMBEDDINGS_URL"), headers=headers, json=payload,
+                         timeout=httpx.Timeout(timeout=int(os.getenv("TIMEOUT"))))
         ret.raise_for_status()
         to_return = [e["embedding"] for e in ret.json()["data"]]
         return to_return
@@ -31,8 +33,8 @@ class RegoloEmbeddings(Embeddings):
         payload = {"input": text, "model": self.model_name}
         headers = {"Authorization": self.Regolo_Key if self.Regolo_Key.__contains__("Bearer") else
         f"Bearer {self.Regolo_Key}"}
-        ret = httpx.post("https://api.regolo.ai/v1/embeddings", headers=headers, json=payload,
-                         timeout=httpx.Timeout(timeout=20))
+        ret = httpx.post(os.getenv("EMBEDDINGS_URL"), headers=headers, json=payload,
+                         timeout=httpx.Timeout(timeout=int(os.getenv("TIMEOUT"))))
         ret.raise_for_status()
         to_return = ret.json()["data"][0]["embedding"]
         return to_return
@@ -40,7 +42,7 @@ class RegoloEmbeddings(Embeddings):
 
 
 def get_embedders_enum() -> Type[Enum]:
-    response = httpx.post("https://regolo.ai/models_embeddings.json").json()
+    response = httpx.post(os.getenv("EMBEDDINGS_JSON_URL")).json()
     models = {content["id"]: content["id"] for content in response["models"]}
     # TODO: take away the following line as soon as new models are available
     models["unavailable"] = "More models coming soon" # enum needs at least two values
@@ -57,7 +59,7 @@ class RegoloEmbeddingsConfig(EmbedderSettings):
         json_schema_extra={
             "humanReadableName": "Regolo embedder models",
             "description": "Configuration for regolo.ai embeddings",
-            "link": "https://regolo.ai/",
+            "link": f"{os.getenv('REGOLO_URL')}",
         }
     )
 

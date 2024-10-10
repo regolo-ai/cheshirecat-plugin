@@ -1,5 +1,6 @@
+import os
 from enum import Enum
-from typing import List, Optional, Type, Any, Mapping
+from typing import List, Type
 import httpx
 
 from pydantic import ConfigDict
@@ -7,14 +8,16 @@ from langchain_openai.chat_models import ChatOpenAI
 
 from cat.mad_hatter.decorators import hook
 from cat.factory.llm import LLMSettings
-from cat.log import log
+from dotenv import load_dotenv, dotenv_values
+
+load_dotenv()
 
 class LLMRegolo(ChatOpenAI):
 
     def __init__(self, model, Regolo_Key, streaming, **kwargs):
         super().__init__(
             model_kwargs={},
-            base_url="https://api.regolo.ai/v1/",
+            base_url=os.getenv("REGOLO_BASE"),
             model_name=model,
             api_key=Regolo_Key,
             streaming=streaming,
@@ -23,7 +26,7 @@ class LLMRegolo(ChatOpenAI):
 
 
 def get_models_enum() -> Type[Enum]:
-    response = httpx.post("https://regolo.ai/models.json").json()
+    response = httpx.post(os.getenv("COMPLETION_JSON_URL"), timeout=int(os.getenv("TIMEOUT"))).json()
     models = {content["id"]: content["id"] for content in response["models"]}
     return Enum('Enum', models)
 
@@ -39,7 +42,7 @@ class RegoloLLMSettings(LLMSettings):
         json_schema_extra={
             "humanReadableName": "Regolo LLM",
             "description": "LLM on regolo.ai",
-            "link": "https://regolo.ai/",
+            "link": f"{os.getenv('REGOLO_URL')}",
         }
     )
 
