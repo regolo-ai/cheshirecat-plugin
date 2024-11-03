@@ -1,8 +1,8 @@
 {
-    "name": "RegoloAI",
-    "version": "0.0.6",
+    "name": "regolo.ai - Plugin",
+    "version": "0.0.7",
     "description": "Plugin for interacting with regolo API. https://regolo.ai for info",
-    "author_name": "RegoloAI",
+    "author_name": "regolo.ai",
     "author_url": "https://regolo.ai",
     "plugin_url": "https://github.com/regolo-ai/cheshirecat-plugin",
     "tags": "cat, regolo.ai, llm, embeddings",
