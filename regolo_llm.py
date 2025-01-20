@@ -24,11 +24,32 @@ class LLMRegolo(ChatOpenAI):
             **kwargs
         )
 
-
 def get_models_enum() -> Type[Enum]:
-    response = httpx.post(os.getenv("COMPLETION_JSON_URL"), timeout=int(os.getenv("TIMEOUT"))).json()
-    models = {content["id"]: content["id"] for content in response["models"]}
-    return Enum('Enum', models)
+    try:
+        # Execute http no cache request
+        headers = {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
+        response = httpx.post(
+            os.getenv("COMPLETION_JSON_URL"),
+            headers=headers
+        )
+        response.raise_for_status()  # Solleva un'eccezione per errori HTTP
+
+        # Parsing JSON response
+        data = response.json()
+        if "models" not in data:
+            raise ValueError("Key 'models' not found in response")
+
+        models = {content["id"]: content["id"] for content in data["models"]}
+        return Enum("ModelEnum", models)
+
+    except httpx.RequestError as e:
+        raise RuntimeError(f"HTTP request failed: {e}")
+    except (KeyError, ValueError) as e:
+        raise RuntimeError(f"Invalid response format: {e}")
 
 LLMEnum = get_models_enum()
 
