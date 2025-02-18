@@ -1,6 +1,5 @@
-from enum import Enum
 from cat.mad_hatter.decorators import plugin
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel
 from cat.looking_glass.cheshire_cat import MadHatter
 from cat.looking_glass.cheshire_cat import CheshireCat
 import os
