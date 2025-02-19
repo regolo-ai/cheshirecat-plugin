@@ -37,7 +37,6 @@ def get_models_enum() -> Optional[Type[Enum] | str]:
             "Expires": "0"
          }
         settings = ccat.mad_hatter.get_plugin().load_settings()
-        log.critical(settings)
         key = settings["regolo_key"]
         if key is not None:
             headers["Authorization"] = f"Bearer {key}"
@@ -45,20 +44,26 @@ def get_models_enum() -> Optional[Type[Enum] | str]:
             os.getenv("COMPLETION_JSON_URL"),
             headers=headers
         )
-        log.critical(key)
-        log.info(response.text)
         if response.status_code == 401:
-            log.critical("None1")
-            return None
+            return Enum("ModelEnum", {"Service unavailable": "Service unavailable",
+                                      "Please try restarting the plugin": "Please try restarting the plugin"})
+        elif response.status_code == 503:
+            return Enum("ModelEnum", {"Service unavailable": "Service unavailable",
+                                      "Please try restarting the plugin": "Please try restarting the plugin"})
         response.raise_for_status()  # Solleva un'eccezione per errori HTTP
-
         # Parsing JSON response
         data = response.json()
         if "data" not in data:
             raise ValueError('Models not found')
 
         models_info = data["data"]
-        models = {model["id"]: model["id"] for model in models_info}
+        models = {model["model_name"]: model["model_name"] for model
+                  in models_info if model["model_info"]["mode"] == "chat" or model["model_info"]["mode"] is None}
+        if len(models) == 0:
+            return Enum("Enum", {"No models available": "No models available",
+                                 "More models coming soon": "More models coming soon"})
+        elif len(models) == 1:
+            models["More models coming soon"] = "More models coming soon"
         return Enum("ModelEnum", models)
 
     except httpx.RequestError as e:
@@ -84,7 +89,5 @@ class RegoloLLMSettings(LLMSettings):
 
 @hook
 def factory_allowed_llms(allowed, cat) -> List:
-    #settings = cat.mad_hatter.get_plugin().load_settings()
-    #model = get_models_enum(settings["api_key"])
     allowed.append(RegoloLLMSettings)
     return allowed
