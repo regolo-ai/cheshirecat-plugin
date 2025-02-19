@@ -75,7 +75,6 @@ def get_embedders_enum() -> Optional[Type[Enum]|str]:
             raise ValueError('Models not found')
 
         models_info = data["data"]
-        log.critical(models_info)
         models = {model["model_name"]: model["model_name"] for model
                   in models_info if model["model_info"]["mode"] == "embedding"}
         if len(models) == 0:
