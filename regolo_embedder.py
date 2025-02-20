@@ -1,16 +1,19 @@
 import os
 from enum import Enum
-from typing import List, Type
+from typing import List, Type, Optional
 import httpx
 
 from pydantic import ConfigDict
 from langchain_core.embeddings import Embeddings
 
+from cat.log import log
 from cat.mad_hatter.decorators import hook
 from cat.factory.embedder import EmbedderSettings
 from dotenv import load_dotenv, dotenv_values
+from cat.looking_glass.cheshire_cat import CheshireCat
 
 load_dotenv()
+ccat = CheshireCat()
 
 class RegoloEmbeddings(Embeddings):
     """Regolo embeddings"""
@@ -18,6 +21,8 @@ class RegoloEmbeddings(Embeddings):
     def __init__(self, model, Regolo_Key):
         self.model_name = model
         self.Regolo_Key = Regolo_Key
+
+
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         payload = {"input": texts, "model": self.model_name}
@@ -41,18 +46,51 @@ class RegoloEmbeddings(Embeddings):
 
 
 
-def get_embedders_enum() -> Type[Enum]:
-    response = httpx.post(os.getenv("EMBEDDINGS_JSON_URL")).json()
-    models = {content["id"]: content["id"] for content in response["models"]}
-    # TODO: take away the following line as soon as new models are available
-    models["unavailable"] = "More models coming soon" # enum needs at least two values
-    return Enum('Enum', models)
+def get_embedders_enum() -> Optional[Type[Enum]|str]:
+    try:
+        # Execute http no cache request
+        headers = {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+        settings = ccat.mad_hatter.get_plugin().load_settings()
+        key = settings["regolo_key"]
+        if key is not None:
+            headers["Authorization"] = f"Bearer {key}"
+        response = httpx.get(
+            os.getenv("COMPLETION_JSON_URL"),
+            headers=headers
+        )
+        if response.status_code == 401:
+            return Enum("Enum", {"Service unavailable": "Service unavailable",
+                                      "Please try restarting the plugin": "Please try restarting the plugin"})
+        elif response.status_code == 503:
+            return Enum("Enum", {"Service unavailable": "Service unavailable",
+                                      "Please try restarting the plugin": "Please try restarting the plugin"})
+        response.raise_for_status()  # Solleva un'eccezione per errori HTTP
+        # Parsing JSON response
+        data = response.json()
+        if "data" not in data:
+            raise ValueError('Models not found')
 
-EmbedderEnum = get_embedders_enum()
+        models_info = data["data"]
+        models = {model["model_name"]: model["model_name"] for model
+                  in models_info if model["model_info"]["mode"] == "embedding"}
+        if len(models) == 0:
+            return Enum("Enum", {"No embedders available": "No embedders available",
+                                 "More embedders coming soon": "More embedders coming soon"})
+        elif len(models) == 1:
+            models["More embedders coming soon"] = "More embedders coming soon"
+        return Enum("Enum", models)
+    except httpx.RequestError as e:
+        raise RuntimeError(f"HTTP request failed: {e}")
+    except (KeyError, ValueError) as e:
+        raise RuntimeError(f"Invalid response format: {e}")
 
 class RegoloEmbeddingsConfig(EmbedderSettings):
-    model: EmbedderEnum
-    Regolo_Key: str
+    model: get_embedders_enum()
+    Regolo_Key: str = ccat.mad_hatter.get_plugin().load_settings()["regolo_key"]
     _pyclass: Type = RegoloEmbeddings
 
     model_config = ConfigDict(
