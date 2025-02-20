@@ -45,8 +45,8 @@ def get_models_enum() -> Optional[Type[Enum] | str]:
             headers=headers
         )
         if response.status_code == 401:
-            return Enum("ModelEnum", {"Service unavailable": "Service unavailable",
-                                      "Please try restarting the plugin": "Please try restarting the plugin"})
+            return Enum("Enum", {"Authentication Error": "Auth error, please try updating the Api key in the plugin options",
+                                      "Please try restarting the plugin": "If key is correct try restarting the plugin"})
         elif response.status_code == 503:
             return Enum("ModelEnum", {"Service unavailable": "Service unavailable",
                                       "Please try restarting the plugin": "Please try restarting the plugin"})
