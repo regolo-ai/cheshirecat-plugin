@@ -3,7 +3,7 @@ from enum import Enum
 from typing import List, Type, Optional
 import httpx
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field
 from langchain_core.embeddings import Embeddings
 
 from cat.log import log
@@ -18,9 +18,9 @@ ccat = CheshireCat()
 class RegoloEmbeddings(Embeddings):
     """Regolo embeddings"""
 
-    def __init__(self, model, Regolo_Key):
+    def __init__(self, model):
         self.model_name = model
-        self.Regolo_Key = Regolo_Key
+        self.Regolo_Key = ccat.mad_hatter.get_plugin().load_settings()["regolo_key"]
 
 
 
@@ -90,7 +90,6 @@ def get_embedders_enum() -> Optional[Type[Enum]|str]:
 
 class RegoloEmbeddingsConfig(EmbedderSettings):
     model: get_embedders_enum()
-    Regolo_Key: str = ccat.mad_hatter.get_plugin().load_settings()["regolo_key"]
     _pyclass: Type = RegoloEmbeddings
 
     model_config = ConfigDict(

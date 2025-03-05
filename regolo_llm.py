@@ -2,7 +2,7 @@ import os
 from enum import Enum
 from typing import List, Type, Optional
 import httpx
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field
 from langchain_openai.chat_models import ChatOpenAI
 
 from cat.mad_hatter.decorators import hook
@@ -17,12 +17,12 @@ ccat = CheshireCat()
 
 class LLMRegolo(ChatOpenAI):
 
-    def __init__(self, model, Regolo_Key, streaming, **kwargs):
+    def __init__(self, model, streaming, **kwargs):
         super().__init__(
             model_kwargs={},
             base_url=os.getenv("REGOLO_BASE"),
             model_name=model,
-            api_key=Regolo_Key,
+            api_key=ccat.mad_hatter.get_plugin().load_settings()["regolo_key"],
             streaming=streaming,
             **kwargs
         )
@@ -74,7 +74,6 @@ def get_models_enum() -> Optional[Type[Enum] | str]:
 
 class RegoloLLMSettings(LLMSettings):
     model: get_models_enum()
-    Regolo_Key: str = ccat.mad_hatter.get_plugin().load_settings()["regolo_key"]
     streaming: bool = True
     _pyclass: Type = LLMRegolo
 
