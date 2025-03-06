@@ -38,7 +38,7 @@ def get_models_enum() -> Optional[Type[Enum] | str]:
          }
         settings = ccat.mad_hatter.get_plugin().load_settings()
         key = settings["regolo_key"]
-        if key is not None:
+        if key is not None and key != "":
             headers["Authorization"] = f"Bearer {key}"
         response = httpx.get(
             os.getenv("COMPLETION_JSON_URL"),
