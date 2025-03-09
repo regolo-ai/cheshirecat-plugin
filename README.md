@@ -48,7 +48,7 @@ It allows users to select models for chat and embedding.
 > if you cannot see some models listed on https://regolo.ai,
 > check if your API key was generated with the models you need.
 > 
-> If it isn't, you can generate another one by logging in to your regolo dashboard.
+> If it wasn't, you can generate a new key by logging into your regolo dashboard.
 
 # Usage
 
