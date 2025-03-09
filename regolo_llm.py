@@ -1,4 +1,5 @@
 import os
+import json
 from enum import Enum
 from typing import List, Type, Optional
 import httpx
@@ -9,11 +10,14 @@ from cat.mad_hatter.decorators import hook
 from cat.factory.llm import LLMSettings
 from dotenv import load_dotenv, dotenv_values
 from cat.log import log
-import cat
-from cat.looking_glass.cheshire_cat import CheshireCat
 
 load_dotenv()
-ccat = CheshireCat()
+# Read the settings.json from the same folder of the plugin
+current_dir = os.path.dirname(os.path.realpath(__file__))
+json_path = os.path.join(current_dir, 'settings.json')
+with open(json_path, 'r') as f:
+    json_settings = json.load(f)
+
 
 class LLMRegolo(ChatOpenAI):
 
@@ -22,7 +26,7 @@ class LLMRegolo(ChatOpenAI):
             model_kwargs={},
             base_url=os.getenv("REGOLO_BASE"),
             model_name=model,
-            api_key=ccat.mad_hatter.get_plugin().load_settings()["regolo_key"],
+            api_key=json_settings["regolo_key"],
             streaming=streaming,
             **kwargs
         )
@@ -35,9 +39,8 @@ def get_models_enum() -> Optional[Type[Enum] | str]:
             "Cache-Control": "no-cache, no-store, must-revalidate",
             "Pragma": "no-cache",
             "Expires": "0"
-         }
-        settings = ccat.mad_hatter.get_plugin().load_settings()
-        key = settings["regolo_key"]
+        }
+        key = json_settings["regolo_key"]
         if key is not None and key != "":
             headers["Authorization"] = f"Bearer {key}"
         response = httpx.get(
@@ -45,8 +48,9 @@ def get_models_enum() -> Optional[Type[Enum] | str]:
             headers=headers
         )
         if response.status_code == 401:
-            return Enum("Enum", {"Authentication Error": "Auth error, please try updating the Api key in the plugin options",
-                                      "Please try restarting the plugin": "If key is correct try restarting the plugin"})
+            return Enum("Enum",
+                        {"Authentication Error": "Auth error, please try updating the Api key in the plugin options",
+                         "Please try restarting the plugin": "If key is correct try restarting the plugin"})
         elif response.status_code == 503:
             return Enum("ModelEnum", {"Service unavailable": "Service unavailable",
                                       "Please try restarting the plugin": "Please try restarting the plugin"})
