@@ -4,12 +4,15 @@ from cat.looking_glass.cheshire_cat import MadHatter
 import os
 import json
 
+
 class MySettings(BaseModel):
     regolo_key: str
+
 
 @plugin
 def settings_model():
     return MySettings
+
 
 @plugin
 def save_settings(settings):

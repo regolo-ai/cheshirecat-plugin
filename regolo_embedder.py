@@ -13,7 +13,6 @@ from cat.mad_hatter.decorators import hook
 from cat.factory.embedder import EmbedderSettings
 from dotenv import load_dotenv, dotenv_values
 
-
 load_dotenv()
 
 # Read the settings.json from the same folder of the plugin
@@ -23,14 +22,13 @@ json_path = os.path.join(current_dir, 'settings.json')
 with open(json_path, 'r') as f:
     json_settings = json.load(f)
 
+
 class RegoloEmbeddings(Embeddings):
     """Regolo embeddings"""
 
     def __init__(self, model):
         self.model_name = model
         self.Regolo_Key = json_settings["regolo_key"]
-
-
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         payload = {"input": texts, "model": self.model_name}
@@ -53,8 +51,7 @@ class RegoloEmbeddings(Embeddings):
         return to_return
 
 
-
-def get_embedders_enum() -> Optional[Type[Enum]|str]:
+def get_embedders_enum() -> Optional[Type[Enum] | str]:
     try:
         # Execute http no cache request
         headers = {
@@ -70,11 +67,12 @@ def get_embedders_enum() -> Optional[Type[Enum]|str]:
             headers=headers
         )
         if response.status_code == 401:
-            return Enum("Enum", {"Authentication Error": "Auth error, please try updating the Api key in the plugin options",
-                                      "Please try restarting the plugin": "If key is correct try restarting the plugin"})
+            return Enum("Enum",
+                        {"Authentication Error": "Auth error, please try updating the Api key in the plugin options",
+                         "Please try restarting the plugin": "If key is correct try restarting the plugin"})
         elif response.status_code == 503:
             return Enum("Enum", {"Service unavailable": "Service unavailable",
-                                      "Please try restarting the plugin": "Please try restarting the plugin"})
+                                 "Please try restarting the plugin": "Please try restarting the plugin"})
         response.raise_for_status()  # Solleva un'eccezione per errori HTTP
         # Parsing JSON response
         data = response.json()
@@ -95,6 +93,7 @@ def get_embedders_enum() -> Optional[Type[Enum]|str]:
     except (KeyError, ValueError) as e:
         raise RuntimeError(f"Invalid response format: {e}")
 
+
 class RegoloEmbeddingsConfig(EmbedderSettings):
     model: get_embedders_enum()
     _pyclass: Type = RegoloEmbeddings
@@ -106,6 +105,7 @@ class RegoloEmbeddingsConfig(EmbedderSettings):
             "link": f"{os.getenv('REGOLO_URL')}",
         }
     )
+
 
 @hook
 def factory_allowed_embedders(allowed, cat) -> List:
