@@ -1,4 +1,6 @@
 import os
+import json
+
 from enum import Enum
 from typing import List, Type, Optional
 import httpx
@@ -10,17 +12,23 @@ from cat.log import log
 from cat.mad_hatter.decorators import hook
 from cat.factory.embedder import EmbedderSettings
 from dotenv import load_dotenv, dotenv_values
-from cat.looking_glass.cheshire_cat import CheshireCat
+
 
 load_dotenv()
-ccat = CheshireCat()
+
+# Read the settings.json from the same folder of the plugin
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
+json_path = os.path.join(current_dir, 'settings.json')
+with open(json_path, 'r') as f:
+    json_settings = json.load(f)
 
 class RegoloEmbeddings(Embeddings):
     """Regolo embeddings"""
 
     def __init__(self, model):
         self.model_name = model
-        self.Regolo_Key = ccat.mad_hatter.get_plugin().load_settings()["regolo_key"]
+        self.Regolo_Key = json_settings["regolo_key"]
 
 
 
@@ -54,8 +62,7 @@ def get_embedders_enum() -> Optional[Type[Enum]|str]:
             "Pragma": "no-cache",
             "Expires": "0"
         }
-        settings = ccat.mad_hatter.get_plugin().load_settings()
-        key = settings["regolo_key"]
+        key = json_settings["regolo_key"]
         if key is not None and key != "":
             headers["Authorization"] = f"Bearer {key}"
         response = httpx.get(
