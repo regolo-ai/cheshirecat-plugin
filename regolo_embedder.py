@@ -5,7 +5,7 @@ from enum import Enum
 from typing import List, Type, Optional
 import httpx
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict
 from langchain_core.embeddings import Embeddings
 
 from cat.log import log
@@ -108,6 +108,6 @@ class RegoloEmbeddingsConfig(EmbedderSettings):
 
 
 @hook
-def factory_allowed_embedders(allowed, cat) -> List:
+def factory_allowed_embedders(allowed, cat) -> List:  # noqa
     allowed.append(RegoloEmbeddingsConfig)
     return allowed

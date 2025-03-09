@@ -3,7 +3,7 @@ import json
 from enum import Enum
 from typing import List, Type, Optional
 import httpx
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict
 from langchain_openai.chat_models import ChatOpenAI
 
 from cat.mad_hatter.decorators import hook
@@ -91,6 +91,6 @@ class RegoloLLMSettings(LLMSettings):
 
 
 @hook
-def factory_allowed_llms(allowed, cat) -> List:
+def factory_allowed_llms(allowed, cat) -> List:  # noqa
     allowed.append(RegoloLLMSettings)
     return allowed

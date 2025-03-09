@@ -1,8 +1,9 @@
+import os
+import json
+
 from cat.mad_hatter.decorators import plugin
 from pydantic import BaseModel
 from cat.looking_glass.cheshire_cat import MadHatter
-import os
-import json
 
 
 class MySettings(BaseModel):
@@ -33,7 +34,7 @@ def save_settings(settings):
 
     # Write the updated settings to the "settings.json" file in the plugin folder
     with open(settings_file_path, "w") as json_file:
-        json.dump(updated_settings, json_file, indent=4)
+        json.dump(updated_settings, json_file, indent=4)  # noqa
 
     # Toggle the plugin to force settings reload
     madHatter = MadHatter()
