@@ -15,34 +15,35 @@ It allows users to select models for chat and embedding.
 
 ## Configuration
 
-#### 1. Insert API Key to authenticate the plugin:
-    Navigate to the "Plugins" section in cheshire cat, then:
+#### 1. Insert API Key to authenticate the plugin
+- Navigate to the "Plugins" section in cheshire cat, then scroll until you see the regolo plugin
+![Plugin_options.png](imgs/Plugin_options.png)
 
-    - Click on the Options icon.
+- Click on the Options ⚙ icon.
 
-    - Enter your API key in the designated field.
+- Enter your API key in the designated field.
 
-    - Save your settings. (It is mandatory to click on the "save" button after you entered your api key)
+- Save your settings. Remember to click on the "save" button after you have inserted your api key!
 
 #### 2. Configure an llm
 
-    Navigate to the "Settings" section in cheshire cat, then:
+- Navigate to the "Settings" section in cheshire cat
 
-    - Go to the "Large Language Model".
+- Go to the "Large Language Model".
 
-    - Select "Regolo LLM" from the menu.
+- Select "Regolo LLM" from the menu.
 
-    - Choose the desired llm model from the ones listed.
+- Choose the desired llm model from the ones listed.
 
 #### 3. Configure an embedder
 
-    Navigate to the "Settings" section in cheshire cat, then:
+- Navigate to the "Settings" section in cheshire cat
 
-    - Open the "Embedder" section.
+- Open the "Embedder" section.
 
-    - Select "Regolo embedder models" from the menu.
+- Select "Regolo embedder models" from the menu.
 
-    - Choose the desired embedder model from the ones listed.
+- Choose the desired embedder model from the ones listed.
 
 > [!TIP]
 > if you cannot see some models listed on https://regolo.ai,
