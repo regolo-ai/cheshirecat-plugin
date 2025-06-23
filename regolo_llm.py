@@ -10,13 +10,18 @@ from cat.mad_hatter.decorators import hook
 from cat.factory.llm import LLMSettings
 from dotenv import load_dotenv, dotenv_values
 from cat.log import log
-
+from pathlib import Path
 load_dotenv()
 # Read the settings.json from the same folder of the plugin
+REGOLO_API_KEY_ENV_NAME = "REGOLO_API_KEY"
+
 current_dir = os.path.dirname(os.path.realpath(__file__))
 json_path = os.path.join(current_dir, 'settings.json')
-with open(json_path, 'r') as f:
-    json_settings = json.load(f)
+if Path(json_path).exists():
+    with open(json_path, 'r') as f:
+        json_settings = json.load(f)
+else:
+    json_settings = {"regolo_key": os.getenv("REGOLO_API_KEY")}
 
 
 class LLMRegolo(ChatOpenAI):
