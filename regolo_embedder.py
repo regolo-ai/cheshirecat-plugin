@@ -13,14 +13,13 @@ from cat.mad_hatter.decorators import hook
 from cat.factory.embedder import EmbedderSettings
 from dotenv import load_dotenv, dotenv_values
 
+from settings import load_settings, SETTINGS_FILE_PATH
+
 load_dotenv()
 
 # Read the settings.json from the same folder of the plugin
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-json_path = os.path.join(current_dir, 'settings.json')
-with open(json_path, 'r') as f:
-    json_settings = json.load(f)
+settings = load_settings(SETTINGS_FILE_PATH)
 
 
 class RegoloEmbeddings(Embeddings):
@@ -28,7 +27,7 @@ class RegoloEmbeddings(Embeddings):
 
     def __init__(self, model):
         self.model_name = model
-        self.Regolo_Key = json_settings["regolo_key"]
+        self.Regolo_Key = settings.regolo_key
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         payload = {"input": texts, "model": self.model_name}
@@ -59,7 +58,7 @@ def get_embedders_enum() -> Optional[Type[Enum] | str]:
             "Pragma": "no-cache",
             "Expires": "0"
         }
-        key = json_settings["regolo_key"]
+        key = settings.regolo_key
         if key is not None and key != "":
             headers["Authorization"] = f"Bearer {key}"
         response = httpx.get(
