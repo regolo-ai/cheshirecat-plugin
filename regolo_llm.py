@@ -1,23 +1,28 @@
 import os
 import json
-from enum import Enum
-from typing import List, Type, Optional
 import httpx
-from pydantic import ConfigDict
-from langchain_openai.chat_models import ChatOpenAI
-
+from typing import List, Type, Optional
+from enum import Enum
 from cat.mad_hatter.decorators import hook
 from cat.factory.llm import LLMSettings
-from dotenv import load_dotenv, dotenv_values
 from cat.log import log
+from langchain_openai.chat_models import ChatOpenAI
+from pydantic import ConfigDict
+
+from dotenv import load_dotenv
 
 load_dotenv()
-# Read the settings.json from the same folder of the plugin
-current_dir = os.path.dirname(os.path.realpath(__file__))
-json_path = os.path.join(current_dir, 'settings.json')
-with open(json_path, 'r') as f:
-    json_settings = json.load(f)
 
+if os.getenv("REGOLO_KEY"):
+    json_settings = {"regolo_key": os.getenv("REGOLO_KEY")}
+else:
+    # Read the settings.json from the same folder of the plugin
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    json_path = os.path.join(current_dir, 'settings.json')
+    with open(json_path, 'r') as f:
+        json_settings = json.load(f)
+    if "regolo_key" not in json_settings.keys():
+        json_settings["regolo_key"] = ""
 
 class LLMRegolo(ChatOpenAI):
 

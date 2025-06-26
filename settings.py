@@ -4,24 +4,31 @@ import json
 from cat.mad_hatter.decorators import plugin
 from pydantic import BaseModel
 from cat.looking_glass.cheshire_cat import MadHatter
+from cat.log import log
 
+# Plugin settings are saved in the plugin folder
+# in a JSON file named "settings.json"
+plugin_path = os.path.dirname(os.path.realpath(__file__))
+settings_file_path = os.path.join(plugin_path, "settings.json")
 
 class MySettings(BaseModel):
     regolo_key: str
 
+class EmptySettings(BaseModel):
+    pass
 
-@plugin
-def settings_model():
-    return MySettings
 
+if os.getenv("REGOLO_KEY"):
+    @plugin
+    def settings_model():
+        return EmptySettings
+else:
+    @plugin
+    def settings_model():
+        return MySettings
 
 @plugin
 def save_settings(settings):
-    # Plugin settings are saved in the plugin folder
-    # in a JSON file named "settings.json"
-    plugin_path = os.path.dirname(os.path.realpath(__file__))
-    settings_file_path = os.path.join(plugin_path, "settings.json")
-
     # Load already saved settings if the file exists; otherwise, use an empty dictionary
     if os.path.exists(settings_file_path):
         with open(settings_file_path, "r") as json_file:
