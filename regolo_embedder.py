@@ -24,8 +24,6 @@ else:
     if "regolo_key" not in json_settings.keys():
         json_settings["regolo_key"] = ""
 
-log.critical(json_settings["regolo_key"])
-
 class LLMRegolo(ChatOpenAI):
 
     def __init__(self, model, streaming, **kwargs):

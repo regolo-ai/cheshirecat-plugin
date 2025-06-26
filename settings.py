@@ -21,12 +21,10 @@ class EmptySettings(BaseModel):
 if os.getenv("REGOLO_KEY"):
     @plugin
     def settings_model():
-        log.critical("test1")
         return EmptySettings
 else:
     @plugin
     def settings_model():
-        log.critical("test2")
         return MySettings
 
 @plugin
