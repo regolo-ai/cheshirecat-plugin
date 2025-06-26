@@ -2,33 +2,35 @@ import os
 import json
 
 from cat.mad_hatter.decorators import plugin
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from cat.looking_glass.cheshire_cat import MadHatter
 from cat.log import log
+
+# Plugin settings are saved in the plugin folder
+# in a JSON file named "settings.json"
+plugin_path = os.path.dirname(os.path.realpath(__file__))
+settings_file_path = os.path.join(plugin_path, "settings.json")
 
 class MySettings(BaseModel):
     regolo_key: str
 
 class EmptySettings(BaseModel):
-    regolo_key: str = Field("Your key is already loaded!", frozen=True)
+    pass
 
 
 if os.getenv("REGOLO_KEY"):
     @plugin
     def settings_model():
+        log.critical("test1")
         return EmptySettings
 else:
     @plugin
     def settings_model():
+        log.critical("test2")
         return MySettings
 
 @plugin
 def save_settings(settings):
-    # Plugin settings are saved in the plugin folder
-    # in a JSON file named "settings.json"
-    plugin_path = os.path.dirname(os.path.realpath(__file__))
-    settings_file_path = os.path.join(plugin_path, "settings.json")
-
     # Load already saved settings if the file exists; otherwise, use an empty dictionary
     if os.path.exists(settings_file_path):
         with open(settings_file_path, "r") as json_file:
@@ -38,11 +40,6 @@ def save_settings(settings):
 
     # Merge the old settings with the new ones
     updated_settings = {**old_settings, **settings}
-
-    if os.getenv("REGOLO_KEY") and "regolo_key" in updated_settings.keys() :
-        updated_settings.pop("regolo_key")
-
-    # log.critical(updated_settings) # log updated settings
 
     # Write the updated settings to the "settings.json" file in the plugin folder
     with open(settings_file_path, "w") as json_file:

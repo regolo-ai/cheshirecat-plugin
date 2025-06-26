@@ -13,15 +13,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Read the settings.json from the same folder of the plugin
-current_dir = os.path.dirname(os.path.realpath(__file__))
-json_path = os.path.join(current_dir, 'settings.json')
-with open(json_path, 'r') as f:
-    json_settings = json.load(f)
-
 if os.getenv("REGOLO_KEY"):
-    json_settings["regolo_key"] = os.getenv("REGOLO_KEY")
+    json_settings = {"regolo_key": os.getenv("REGOLO_KEY")}
 else:
+    # Read the settings.json from the same folder of the plugin
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    json_path = os.path.join(current_dir, 'settings.json')
+    with open(json_path, 'r') as f:
+        json_settings = json.load(f)
     if "regolo_key" not in json_settings.keys():
         json_settings["regolo_key"] = ""
 
