@@ -24,78 +24,95 @@ else:
     if "regolo_key" not in json_settings.keys():
         json_settings["regolo_key"] = ""
 
-class LLMRegolo(ChatOpenAI):
-
-    def __init__(self, model, streaming, **kwargs):
-        super().__init__(
-            model_kwargs={},
-            base_url=os.getenv("REGOLO_BASE"),
-            model_name=model,
-            api_key=json_settings["regolo_key"],
-            streaming=streaming,
-            **kwargs
-        )
 
 
-def get_models_enum() -> Optional[Type[Enum] | str]:
-    try:
-        # Execute http no cache request
-        headers = {
+headers = {
             "Cache-Control": "no-cache, no-store, must-revalidate",
             "Pragma": "no-cache",
             "Expires": "0"
         }
-        key = json_settings["regolo_key"]
-        if key is not None and key != "":
-            headers["Authorization"] = f"Bearer {key}"
-        response = httpx.get(
-            os.getenv("COMPLETION_JSON_URL"),
-            headers=headers
+key = json_settings["regolo_key"]
+if key is not None and key != "":
+    headers["Authorization"] = f"Bearer {key}"
+response = httpx.get(
+    os.getenv("COMPLETION_JSON_URL"),
+    headers=headers
+)
+
+log.critical(response.status_code)
+if not response.status_code == 401:
+    class LLMRegolo(ChatOpenAI):
+
+        def __init__(self, model, streaming, **kwargs):
+            super().__init__(
+                model_kwargs={},
+                base_url=os.getenv("REGOLO_BASE"),
+                model_name=model,
+                api_key=json_settings["regolo_key"],
+                streaming=streaming,
+                **kwargs
+            )
+
+
+    def get_models_enum() -> Optional[Type[Enum] | str]:
+        try:
+            # Execute http no cache request
+            headers = {
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+            key = json_settings["regolo_key"]
+            if key is not None and key != "":
+                headers["Authorization"] = f"Bearer {key}"
+            response = httpx.get(
+                os.getenv("COMPLETION_JSON_URL"),
+                headers=headers
+            )
+            if response.status_code == 401:
+                return Enum("Enum",
+                            {"Authentication Error": "Auth error, please try updating the Api key in the plugin options",
+                             "Please try restarting the plugin": "If key is correct try restarting the plugin"})
+            elif response.status_code == 503:
+                return Enum("ModelEnum", {"Service unavailable": "Service unavailable",
+                                          "Please try restarting the plugin": "Please try restarting the plugin"})
+            response.raise_for_status()  # Solleva un'eccezione per errori HTTP
+            # Parsing JSON response
+            data = response.json()
+            if "data" not in data:
+                raise ValueError('Models not found')
+
+            models_info = data["data"]
+            models = {model["model_name"]: model["model_name"] for model
+                      in models_info if model["model_info"]["mode"] == "chat" or model["model_info"]["mode"] is None}
+            if len(models) == 0:
+                return Enum("Enum", {"No models available": "No models available",
+                                     "More models coming soon": "More models coming soon"})
+            elif len(models) == 1:
+                models["More models coming soon"] = "More models coming soon"
+            return Enum("ModelEnum", models)
+
+        except httpx.RequestError as e:
+            raise RuntimeError(f"HTTP request failed: {e}")
+        except (KeyError, ValueError) as e:
+            raise RuntimeError(f"Invalid response format: {e}")
+
+
+    class RegoloLLMSettings(LLMSettings):
+        model: get_models_enum()
+        streaming: bool = True
+        _pyclass: Type = LLMRegolo
+
+        model_config = ConfigDict(
+            json_schema_extra={
+                "humanReadableName": "Regolo LLM",
+                "description": "LLM on regolo.ai",
+                "link": f"{os.getenv('REGOLO_URL')}",
+            }
         )
-        if response.status_code == 401:
-            return Enum("Enum",
-                        {"Authentication Error": "Auth error, please try updating the Api key in the plugin options",
-                         "Please try restarting the plugin": "If key is correct try restarting the plugin"})
-        elif response.status_code == 503:
-            return Enum("ModelEnum", {"Service unavailable": "Service unavailable",
-                                      "Please try restarting the plugin": "Please try restarting the plugin"})
-        response.raise_for_status()  # Solleva un'eccezione per errori HTTP
-        # Parsing JSON response
-        data = response.json()
-        if "data" not in data:
-            raise ValueError('Models not found')
-
-        models_info = data["data"]
-        models = {model["model_name"]: model["model_name"] for model
-                  in models_info if model["model_info"]["mode"] == "chat" or model["model_info"]["mode"] is None}
-        if len(models) == 0:
-            return Enum("Enum", {"No models available": "No models available",
-                                 "More models coming soon": "More models coming soon"})
-        elif len(models) == 1:
-            models["More models coming soon"] = "More models coming soon"
-        return Enum("ModelEnum", models)
-
-    except httpx.RequestError as e:
-        raise RuntimeError(f"HTTP request failed: {e}")
-    except (KeyError, ValueError) as e:
-        raise RuntimeError(f"Invalid response format: {e}")
 
 
-class RegoloLLMSettings(LLMSettings):
-    model: get_models_enum()
-    streaming: bool = True
-    _pyclass: Type = LLMRegolo
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "humanReadableName": "Regolo LLM",
-            "description": "LLM on regolo.ai",
-            "link": f"{os.getenv('REGOLO_URL')}",
-        }
-    )
-
-
-@hook
-def factory_allowed_llms(allowed, cat) -> List:  # noqa
-    allowed.append(RegoloLLMSettings)
-    return allowed
+    @hook
+    def factory_allowed_llms(allowed, cat) -> List:  # noqa
+        allowed.append(RegoloLLMSettings)
+        return allowed
