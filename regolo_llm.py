@@ -39,8 +39,9 @@ response = httpx.get(
     headers=headers
 )
 
-log.critical(response.status_code)
-if not response.status_code == 401:
+if response.status_code == 401:
+    log.critical("Key auth error for regolo.ai")
+else:
     class LLMRegolo(ChatOpenAI):
 
         def __init__(self, model, streaming, **kwargs):

@@ -38,8 +38,10 @@ response = httpx.get(
     os.getenv("COMPLETION_JSON_URL"),
     headers=headers
 )
-log.critical(response.status_code)
-if not response.status_code == 401:
+
+if response.status_code == 401:
+    log.critical("Key auth error for regolo.ai")
+else:
     class RegoloEmbeddings(Embeddings):
         """Regolo embeddings"""
 
