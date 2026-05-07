@@ -50,23 +50,35 @@ else:
             self.Regolo_Key = json_settings["regolo_key"]
 
         def embed_documents(self, texts: List[str]) -> List[List[float]]:
+            if not self.Regolo_Key:
+                log.critical("Regolo API key is not set. Please configure it in the plugin settings.")
+                return [[] for _ in texts]
             payload = {"input": texts, "model": self.model_name}
             headers = {}
             if self.Regolo_Key:
                 headers["Authorization"] = self.Regolo_Key if "Bearer" in self.Regolo_Key else f"Bearer {self.Regolo_Key}"
             ret = httpx.post(os.getenv("EMBEDDINGS_URL"), headers=headers, json=payload,
                              timeout=httpx.Timeout(timeout=int(os.getenv("TIMEOUT"))))
+            if ret.status_code == 401:
+                log.critical("Regolo API key is invalid or expired. Please update it in the plugin settings.")
+                return [[] for _ in texts]
             ret.raise_for_status()
             to_return = [e["embedding"] for e in ret.json()["data"]]
             return to_return
 
         def embed_query(self, text: str) -> List[float]:
+            if not self.Regolo_Key:
+                log.critical("Regolo API key is not set. Please configure it in the plugin settings.")
+                return []
             payload = {"input": text, "model": self.model_name}
             headers = {}
             if self.Regolo_Key:
                 headers["Authorization"] = self.Regolo_Key if "Bearer" in self.Regolo_Key else f"Bearer {self.Regolo_Key}"
             ret = httpx.post(os.getenv("EMBEDDINGS_URL"), headers=headers, json=payload,
                              timeout=httpx.Timeout(timeout=int(os.getenv("TIMEOUT"))))
+            if ret.status_code == 401:
+                log.critical("Regolo API key is invalid or expired. Please update it in the plugin settings.")
+                return []
             ret.raise_for_status()
             to_return = ret.json()["data"][0]["embedding"]
             return to_return
