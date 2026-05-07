@@ -10,6 +10,7 @@ from cat.log import log
 # in a JSON file named "settings.json"
 plugin_path = os.path.dirname(os.path.realpath(__file__))
 settings_file_path = os.path.join(plugin_path, "settings.json")
+plugin_id = os.path.basename(plugin_path)
 
 class MySettings(BaseModel):
     regolo_key: str
@@ -45,7 +46,7 @@ def save_settings(settings):
 
     # Toggle the plugin to force settings reload
     madHatter = MadHatter()
-    madHatter.toggle_plugin("cheshirecat_plugin")
-    madHatter.toggle_plugin("cheshirecat_plugin")
+    madHatter.toggle_plugin(plugin_id)
+    madHatter.toggle_plugin(plugin_id)
 
     return updated_settings
