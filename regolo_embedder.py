@@ -51,8 +51,9 @@ else:
 
         def embed_documents(self, texts: List[str]) -> List[List[float]]:
             payload = {"input": texts, "model": self.model_name}
-            headers = {"Authorization": self.Regolo_Key if self.Regolo_Key.__contains__("Bearer") else
-            f"Bearer {self.Regolo_Key}"}
+            headers = {}
+            if self.Regolo_Key:
+                headers["Authorization"] = self.Regolo_Key if "Bearer" in self.Regolo_Key else f"Bearer {self.Regolo_Key}"
             ret = httpx.post(os.getenv("EMBEDDINGS_URL"), headers=headers, json=payload,
                              timeout=httpx.Timeout(timeout=int(os.getenv("TIMEOUT"))))
             ret.raise_for_status()
@@ -61,8 +62,9 @@ else:
 
         def embed_query(self, text: str) -> List[float]:
             payload = {"input": text, "model": self.model_name}
-            headers = {"Authorization": self.Regolo_Key if self.Regolo_Key.__contains__("Bearer") else
-            f"Bearer {self.Regolo_Key}"}
+            headers = {}
+            if self.Regolo_Key:
+                headers["Authorization"] = self.Regolo_Key if "Bearer" in self.Regolo_Key else f"Bearer {self.Regolo_Key}"
             ret = httpx.post(os.getenv("EMBEDDINGS_URL"), headers=headers, json=payload,
                              timeout=httpx.Timeout(timeout=int(os.getenv("TIMEOUT"))))
             ret.raise_for_status()

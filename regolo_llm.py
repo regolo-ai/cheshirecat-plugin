@@ -49,7 +49,7 @@ else:
                 model_kwargs={},
                 base_url=os.getenv("REGOLO_BASE"),
                 model_name=model,
-                api_key=json_settings["regolo_key"],
+                api_key=json_settings["regolo_key"] or "no-key",
                 streaming=streaming,
                 **kwargs
             )
